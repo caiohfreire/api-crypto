@@ -1,17 +1,23 @@
-FROM node:20-alpine
+# Usar a imagem oficial do Node.js
+FROM node:20
 
-WORKDIR /app
+# Definir diretório de trabalho
+WORKDIR /usr/src/app
 
-RUN mkdir -p /app
+# Copiar apenas os arquivos de dependências primeiro para aproveitar o cache do Docker
+COPY package*.json ./
 
-COPY package.json /app/
+# Instalar todas as dependências (incluindo devDependencies)
+RUN npm install
 
-RUN npm cache clean \
-  rm node_modules/ \
-  npm install --frozen-lockfile
-
+# Copiar o restante do código da aplicação
 COPY . .
 
+# Construir o aplicativo NestJS
+RUN npm run build
+
+# Expor a porta
 EXPOSE 8080
 
-CMD [ "npm", "start" ]
+# Comando para rodar a aplicação
+CMD ["node", "dist/main"]
